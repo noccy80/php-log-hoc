@@ -30,10 +30,22 @@ class LogBuffer implements LoggerInterface
             '%time%' => date('H:i:s'),
             '%message%' => $formattedMessage,
             '%level%' => $level,
-            '%levelpad%' => str_pad($level, 10, " ", STR_PAD_LEFT)
+            '%levelpad%' => str_pad($level, 10, " ", STR_PAD_LEFT),
+            '%context%' => json_encode($context),
         ];
         $formatted = strtr($this->format, $messageParts);
         array_push($this->buffer, $formatted);
+    }
+
+    public function dump($data)
+    {
+        foreach (explode("\n", json_encode($data, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE)) as $line)
+            $this->log(null, $line);
+    }
+
+    public function mark($message=null)
+    {
+        $this->log("----", $message);
     }
 
     public function setFormat(string $format)
@@ -54,5 +66,10 @@ class LogBuffer implements LoggerInterface
     public function getBufferArray(): array
     {
         return $this->buffer;
+    }
+
+    public function __toString()
+    {
+        return $this->getBuffer();
     }
 }
